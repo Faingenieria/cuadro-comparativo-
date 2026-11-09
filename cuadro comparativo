@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Automatizado de Comparación de Proveedores y Control de Costos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <i data-lucide="calculator" class="w-8 h-8 text-blue-400"></i>
+                <div>
+                    <h1 class="text-xl font-bold">Sistema de Cuadro Comparativo & Control de Costos</h1>
+                    <p class="text-xs text-slate-400">Herramienta Automatizada para Toma de Decisiones de Compra</p>
+                </div>
+            </div>
+            <!-- Tabs -->
+            <nav class="flex space-x-2 bg-slate-800 p-1.5 rounded-lg border border-slate-700">
+                <button onclick="switchTab('tab-comparativo')" id="btn-comparativo" class="tab-btn px-4 py-2 rounded-md text-sm font-medium transition bg-blue-600 text-white shadow">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4 inline mr-1"></i> Cuadro Comparativo
+                </button>
+                <button onclick="switchTab('tab-costos')" id="btn-costos" class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition">
+                    <i data-lucide="dollar-sign" class="w-4 h-4 inline mr-1"></i> Control de Costos
+                </button>
+                <button onclick="switchTab('tab-proveedores')" id="btn-proveedores" class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition">
+                    <i data-lucide="users" class="w-4 h-4 inline mr-1"></i> BD Proveedores
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6">
+
+        <!-- TAB 1: CUADRO COMPARATIVO AUTOMATIZADO -->
+        <section id="tab-comparativo" class="tab-content block space-y-6">
+            <!-- Panel de Criterios y Ponderación -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-5 h-5 text-blue-600"></i> Ponderación de Criterios para Toma de Decisión
+                    </h2>
+                    <span id="weight-total" class="text-sm font-semibold px-3 py-1 bg-green-100 text-green-800 rounded-full">Suma: 100%</span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Precio (%)</label>
+                        <input type="number" id="w-precio" value="40" min="0" max="100" onchange="actualizarCalculos()" class="w-full p-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tiempo Entrega (%)</label>
+                        <input type="number" id="w-entrega" value="20" min="0" max="100" onchange="actualizarCalculos()" class="w-full p-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Días Crédito (%)</label>
+                        <input type="number" id="w-credito" value="20" min="0" max="100" onchange="actualizarCalculos()" class="w-full p-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Garantía (%)</label>
+                        <input type="number" id="w-garantia" value="10" min="0" max="100" onchange="actualizarCalculos()" class="w-full p-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Descuento (%)</label>
+                        <input type="number" id="w-descuento" value="10" min="0" max="100" onchange="actualizarCalculos()" class="w-full p-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selección de Proveedores a Comparar -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <i data-lucide="user-check" class="w-5 h-5 text-blue-600"></i> Seleccionar Proveedores a Evaluar
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Proveedor Opción 1</label>
+                        <select id="select-prov-1" onchange="actualizarCalculos()" class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Proveedor Opción 2</label>
+                        <select id="select-prov-2" onchange="actualizarCalculos()" class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Proveedor Opción 3</label>
+                        <select id="select-prov-3" onchange="actualizarCalculos()" class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500"></select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resultado Recomendación -->
+            <div id="recomendacion-box" class="p-4 rounded-xl border-2 border-emerald-400 bg-emerald-50 text-emerald-900 flex items-center gap-4">
+                <div class="p-3 bg-emerald-500 text-white rounded-full">
+                    <i data-lucide="award" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg">PROVEEDOR RECOMENDADO: <span id="rec-nombre" class="underline">---</span></h3>
+                    <p class="text-sm text-emerald-800" id="rec-detalle">Seleccione proveedores para calcular la mejor opción basada en costo total e indicadores comerciales.</p>
+                </div>
+            </div>
+
+            <!-- Tabla de Comparación Directa -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="bg-slate-800 text-white text-sm">
+                            <th class="p-3">Variable de Evaluación</th>
+                            <th class="p-3 text-center" id="th-prov-1">Proveedor 1</th>
+                            <th class="p-3 text-center" id="th-prov-2">Proveedor 2</th>
+                            <th class="p-3 text-center" id="th-prov-3">Proveedor 3</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 text-sm">
+                        <tr>
+                            <td class="p-3 font-semibold text-slate-700">Costo Total Neto ($)</td>
+                            <td class="p-3 text-center font-bold" id="val-costo-1">$0.00</td>
+                            <td class="p-3 text-center font-bold" id="val-costo-2">$0.00</td>
+                            <td class="p-3 text-center font-bold" id="val-costo-3">$0.00</td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="p-3 font-semibold text-slate-700">Días de Crédito</td>
+                            <td class="p-3 text-center" id="val-cred-1">0 días</td>
+                            <td class="p-3 text-center" id="val-cred-2">0 días</td>
+                            <td class="p-3 text-center" id="val-cred-3">0 días</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-semibold text-slate-700">Tiempo de Entrega (Días)</td>
+                            <td class="p-3 text-center" id="val-ent-1">0 días</td>
+                            <td class="p-3 text-center" id="val-ent-2">0 días</td>
+                            <td class="p-3 text-center" id="val-ent-3">0 días</td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="p-3 font-semibold text-slate-700">Garantía (Meses)</td>
+                            <td class="p-3 text-center" id="val-gar-1">0 meses</td>
+                            <td class="p-3 text-center" id="val-gar-2">0 meses</td>
+                            <td class="p-3 text-center" id="val-gar-3">0 meses</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-semibold text-slate-700">Descuento Comercial (%)</td>
+                            <td class="p-3 text-center" id="val-desc-1">0%</td>
+                            <td class="p-3 text-center" id="val-desc-2">0%</td>
+                            <td class="p-3 text-center" id="val-desc-3">0%</td>
+                        </tr>
+                        <tr class="bg-blue-50 font-bold border-t-2 border-blue-200">
+                            <td class="p-3 text-blue-900">Puntaje Global de Decisión (0 - 100%)</td>
+                            <td class="p-3 text-center text-lg text-blue-700" id="score-1">0%</td>
+                            <td class="p-3 text-center text-lg text-blue-700" id="score-2">0%</td>
+                            <td class="p-3 text-center text-lg text-blue-700" id="score-3">0%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB 2: CONTROL DE COSTOS DETALLADO -->
+        <section id="tab-costos" class="tab-content hidden space-y-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="file-spreadsheet" class="w-5 h-5 text-blue-600"></i> Hoja de Alimentación y Control de Costos por Ítem
+                        </h2>
+                        <p class="text-xs text-slate-500">Ingrese los datos unitarios requeridos para alimentar el cálculo del cuadro comparativo.</p>
+                    </div>
+                    <button onclick="agregarFilaArticulo()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Agregar Ítem
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs min-w-[900px]">
+                        <thead>
+                            <tr class="bg-slate-800 text-white">
+                                <th class="p-2 w-12">N°</th>
+                                <th class="p-2">Descripción del Material / Servicio</th>
+                                <th class="p-2 w-20 text-center">Cant.</th>
+                                <th class="p-2 text-center border-l border-slate-600 bg-slate-700" id="cost-header-p1">Prov. 1 ($ Unit)</th>
+                                <th class="p-2 text-center border-l border-slate-600 bg-slate-700" id="cost-header-p2">Prov. 2 ($ Unit)</th>
+                                <th class="p-2 text-center border-l border-slate-600 bg-slate-700" id="cost-header-p3">Prov. 3 ($ Unit)</th>
+                                <th class="p-2 text-center w-10">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-articulos-body" class="divide-y divide-slate-200">
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="font-bold bg-slate-100 text-sm">
+                                <td colspan="2" class="p-3 text-right">Subtotal Bruto:</td>
+                                <td></td>
+                                <td class="p-3 text-center text-slate-800" id="subtotal-p1">$0.00</td>
+                                <td class="p-3 text-center text-slate-800" id="subtotal-p2">$0.00</td>
+                                <td class="p-3 text-center text-slate-800" id="subtotal-p3">$0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr class="font-bold bg-slate-100 text-sm">
+                                <td colspan="2" class="p-3 text-right">(-) Descuento Comercial Aplicado:</td>
+                                <td></td>
+                                <td class="p-3 text-center text-red-600" id="descto-p1">-$0.00</td>
+                                <td class="p-3 text-center text-red-600" id="descto-p2">-$0.00</td>
+                                <td class="p-3 text-center text-red-600" id="descto-p3">-$0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr class="font-bold bg-slate-100 text-sm">
+                                <td colspan="2" class="p-3 text-right">(+) Impuestos / IVA (19%):</td>
+                                <td></td>
+                                <td class="p-3 text-center text-slate-600" id="iva-p1">$0.00</td>
+                                <td class="p-3 text-center text-slate-600" id="iva-p2">$0.00</td>
+                                <td class="p-3 text-center text-slate-600" id="iva-p3">$0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr class="font-bold bg-blue-900 text-white text-base">
+                                <td colspan="2" class="p-3 text-right">COSTO TOTAL FINAL:</td>
+                                <td></td>
+                                <td class="p-3 text-center" id="total-p1">$0.00</td>
+                                <td class="p-3 text-center" id="total-p2">$0.00</td>
+                                <td class="p-3 text-center" id="total-p3">$0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: BASE DE DATOS DE PROVEEDORES -->
+        <section id="tab-proveedores" class="tab-content hidden space-y-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="database" class="w-5 h-5 text-blue-600"></i> Maestro de Proveedores Registrados
+                        </h2>
+                        <p class="text-xs text-slate-500">Agregue o modifique las condiciones comerciales fijas de sus proveedores.</p>
+                    </div>
+                    <button onclick="modalAgregarProveedor()" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i> Nuevo Proveedor
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs min-w-[700px]">
+                        <thead>
+                            <tr class="bg-slate-800 text-white">
+                                <th class="p-2.5">ID / NIT</th>
+                                <th class="p-2.5">Nombre del Proveedor</th>
+                                <th class="p-2.5 text-center">Días Crédito</th>
+                                <th class="p-2.5 text-center">Tiempo Entrega (días)</th>
+                                <th class="p-2.5 text-center">Garantía (meses)</th>
+                                <th class="p-2.5 text-center">Desc. Comercial (%)</th>
+                                <th class="p-2.5 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-bd-proveedores" class="divide-y divide-slate-200">
+                            <!-- Render BD Proveedores -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Script de Lógica Interactivas y Fórmulas -->
+    <script>
+        // Inicializar Iconos
+        lucide.createIcons();
+
+        // Estado Global de la Aplicación
+        let proveedores = [
+            { id: 1, nombre: "Distribuidora Industrial Alfa", nit: "900.123.456-1", credito: 60, entrega: 3, garantia: 12, descuento: 5 },
+            { id: 2, nombre: "Suministros Globales Beta", nit: "800.987.654-3", credito: 30, entrega: 5, garantia: 24, descuento: 10 },
+            { id: 3, nombre: "Comercializadora Gamma", nit: "901.555.777-9", credito: 15, entrega: 2, garantia: 6, descuento: 2 },
+            { id: 4, nombre: "Importaciones Delta", nit: "900.444.111-0", credito: 90, entrega: 10, garantia: 12, descuento: 8 }
+        ];
+
+        let articulos = [
+            { id: 1, nombre: "Válvula de Control 2 pulg", cantidad: 10, p1: 150000, p2: 145000, p3: 160000 },
+            { id: 2, nombre: "Tubo Acero Inoxidable 3m", cantidad: 25, p1: 85000, p2: 90000, p3: 82000 },
+            { id: 3, nombre: "Empaque de Alta Presión", cantidad: 50, p1: 12000, p2: 11000, p3: 12500 }
+        ];
+
+        // Navegación entre pestañas
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-blue-600', 'text-white', 'shadow');
+                el.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-700');
+            });
+            
+            document.getElementById(tabId).classList.remove('hidden');
+            const btn = document.getElementById('btn-' + tabId.replace('tab-', ''));
+            btn.classList.add('bg-blue-600', 'text-white', 'shadow');
+            btn.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-slate-700');
+        }
+
+        // Cargar Selectores de Proveedores
+        function cargarSelectoresProveedores() {
+            const selects = ['select-prov-1', 'select-prov-2', 'select-prov-3'];
+            selects.forEach((selectId, index) => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '';
+                proveedores.forEach((p, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${p.nombre} (NIT: ${p.nit})`;
+                    // Valores por defecto
+                    if (index === 0 && idx === 0) opt.selected = true;
+                    if (index === 1 && idx === 1) opt.selected = true;
+                    if (index === 2 && idx === 2) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            });
+        }
+
+        // Render Control de Costos
+        function renderTablaArticulos() {
+            const tbody = document.getElementById('tabla-articulos-body');
+            tbody.innerHTML = '';
+
+            articulos.forEach((art, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 border-b border-slate-200';
+                tr.innerHTML = `
+                    <td class="p-2 font-semibold text-slate-500">${index + 1}</td>
+                    <td class="p-2">
+                        <input type="text" value="${art.nombre}" onchange="articulos[${index}].nombre = this.value; actualizarCalculos();" class="w-full p-1 border rounded text-xs">
+                    </td>
+                    <td class="p-2">
+                        <input type="number" value="${art.cantidad}" onchange="articulos[${index}].cantidad = parseFloat(this.value)||0; actualizarCalculos();" class="w-full p-1 border rounded text-xs text-center">
+                    </td>
+                    <td class="p-2 border-l border-slate-200">
+                        <input type="number" value="${art.p1}" onchange="articulos[${index}].p1 = parseFloat(this.value)||0; actualizarCalculos();" class="w-full p-1 border rounded text-xs text-right">
+                    </td>
+                    <td class="p-2 border-l border-slate-200">
+                        <input type="number" value="${art.p2}" onchange="articulos[${index}].p2 = parseFloat(this.value)||0; actualizarCalculos();" class="w-full p-1 border rounded text-xs text-right">
+                    </td>
+                    <td class="p-2 border-l border-slate-200">
+                        <input type="number" value="${art.p3}" onchange="articulos[${index}].p3 = parseFloat(this.value)||0; actualizarCalculos();" class="w-full p-1 border rounded text-xs text-right">
+                    </td>
+                    <td class="p-2 text-center">
+                        <button onclick="eliminarArticulo(${index})" class="text-red-500 hover:text-red-700">
+                            <i data-lucide="trash-2" class="w-4 h-4 inline"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function agregarFilaArticulo() {
+            articulos.push({ id: Date.now(), nombre: "Nuevo Ítem", cantidad: 1, p1: 0, p2: 0, p3: 0 });
+            renderTablaArticulos();
+            actualizarCalculos();
+        }
+
+        function eliminarArticulo(index) {
+            articulos.splice(index, 1);
+            renderTablaArticulos();
+            actualizarCalculos();
+        }
+
+        // Render Maestro Proveedores
+        function renderTablaBDProveedores() {
+            const tbody = document.getElementById('tabla-bd-proveedores');
+            tbody.innerHTML = '';
+            proveedores.forEach((p, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 border-b border-slate-200';
+                tr.innerHTML = `
+                    <td class="p-2.5 font-medium text-slate-600">${p.nit}</td>
+                    <td class="p-2.5 font-semibold text-slate-800">${p.nombre}</td>
+                    <td class="p-2.5 text-center">${p.credito} días</td>
+                    <td class="p-2.5 text-center">${p.entrega} días</td>
+                    <td class="p-2.5 text-center">${p.garantia} meses</td>
+                    <td class="p-2.5 text-center">${p.descuento}%</td>
+                    <td class="p-2.5 text-center">
+                        <button onclick="eliminarProveedor(${p.id})" class="text-red-500 hover:text-red-700">
+                            <i data-lucide="trash-2" class="w-4 h-4 inline"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function modalAgregarProveedor() {
+            const nombre = prompt("Nombre del Proveedor:");
+            if (!nombre) return;
+            const nit = prompt("NIT / RUT del Proveedor:", "900.000.000-0");
+            const credito = parseFloat(prompt("Días de Crédito:", "30")) || 0;
+            const entrega = parseFloat(prompt("Tiempo de Entrega (días):", "5")) || 0;
+            const garantia = parseFloat(prompt("Garantía (Meses):", "12")) || 0;
+            const descuento = parseFloat(prompt("Descuento Comercial (%):", "0")) || 0;
+
+            proveedores.push({
+                id: Date.now(),
+                nombre, nit, credito, entrega, garantia, descuento
+            });
+
+            cargarSelectoresProveedores();
+            renderTablaBDProveedores();
+            actualizarCalculos();
+        }
+
+        function eliminarProveedor(id) {
+            if (proveedores.length <= 3) {
+                alert("Debe mantener al menos 3 proveedores para poder realizar las comparaciones.");
+                return;
+            }
+            proveedores = proveedores.filter(p => p.id !== id);
+            cargarSelectoresProveedores();
+            renderTablaBDProveedores();
+            actualizarCalculos();
+        }
+
+        // MOTOR DE CÁLCULO Y AUTOMATIZACIÓN DE DECISIONES
+        function actualizarCalculos() {
+            // 1. Obtener Proveedores seleccionados
+            const p1Id = parseInt(document.getElementById('select-prov-1').value);
+            const p2Id = parseInt(document.getElementById('select-prov-2').value);
+            const p3Id = parseInt(document.getElementById('select-prov-3').value);
+
+            const prov1 = proveedores.find(p => p.id === p1Id) || proveedores[0];
+            const prov2 = proveedores.find(p => p.id === p2Id) || proveedores[1];
+            const prov3 = proveedores.find(p => p.id === p3Id) || proveedores[2];
+
+            // Encabezados de control de costos
+            document.getElementById('cost-header-p1').innerText = prov1.nombre;
+            document.getElementById('cost-header-p2').innerText = prov2.nombre;
+            document.getElementById('cost-header-p3').innerText = prov3.nombre;
+            document.getElementById('th-prov-1').innerText = prov1.nombre;
+            document.getElementById('th-prov-2').innerText = prov2.nombre;
+            document.getElementById('th-prov-3').innerText = prov3.nombre;
+
+            // 2. Calcular Subtotales de Costos por Proveedor
+            let subtotal1 = 0, subtotal2 = 0, subtotal3 = 0;
+            articulos.forEach(art => {
+                subtotal1 += art.cantidad * art.p1;
+                subtotal2 += art.cantidad * art.p2;
+                subtotal3 += art.cantidad * art.p3;
+            });
+
+            // Aplicar Descuentos y IVA (19%)
+            const desctoVal1 = subtotal1 * (prov1.descuento / 100);
+            const desctoVal2 = subtotal2 * (prov2.descuento / 100);
+            const desctoVal3 = subtotal3 * (prov3.descuento / 100);
+
+            const base1 = subtotal1 - desctoVal1;
+            const base2 = subtotal2 - desctoVal2;
+            const base3 = subtotal3 - desctoVal3;
+
+            const iva1 = base1 * 0.19;
+            const iva2 = base2 * 0.19;
+            const iva3 = base3 * 0.19;
+
+            const total1 = base1 + iva1;
+            const total2 = base2 + iva2;
+            const total3 = base3 + iva3;
+
+            // Actualizar UI Control de Costos
+            const fmt = (v) => '$' + v.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('subtotal-p1').innerText = fmt(subtotal1);
+            document.getElementById('subtotal-p2').innerText = fmt(subtotal2);
+            document.getElementById('subtotal-p3').innerText = fmt(subtotal3);
+
+            document.getElementById('descto-p1').innerText = '-' + fmt(desctoVal1);
+            document.getElementById('descto-p2').innerText = '-' + fmt(desctoVal2);
+            document.getElementById('descto-p3').innerText = '-' + fmt(desctoVal3);
+
+            document.getElementById('iva-p1').innerText = fmt(iva1);
+            document.getElementById('iva-p2').innerText = fmt(iva2);
+            document.getElementById('iva-p3').innerText = fmt(iva3);
+
+            document.getElementById('total-p1').innerText = fmt(total1);
+            document.getElementById('total-p2').innerText = fmt(total2);
+            document.getElementById('total-p3').innerText = fmt(total3);
+
+            // Actualizar UI Cuadro Comparativo
+            document.getElementById('val-costo-1').innerText = fmt(total1);
+            document.getElementById('val-costo-2').innerText = fmt(total2);
+            document.getElementById('val-costo-3').innerText = fmt(total3);
+
+            document.getElementById('val-cred-1').innerText = prov1.credito + ' días';
+            document.getElementById('val-cred-2').innerText = prov2.credito + ' días';
+            document.getElementById('val-cred-3').innerText = prov3.credito + ' días';
+
+            document.getElementById('val-ent-1').innerText = prov1.entrega + ' días';
+            document.getElementById('val-ent-2').innerText = prov2.entrega + ' días';
+            document.getElementById('val-ent-3').innerText = prov3.entrega + ' días';
+
+            document.getElementById('val-gar-1').innerText = prov1.garantia + ' meses';
+            document.getElementById('val-gar-2').innerText = prov2.garantia + ' meses';
+            document.getElementById('val-gar-3').innerText = prov3.garantia + ' meses';
+
+            document.getElementById('val-desc-1').innerText = prov1.descuento + '%';
+            document.getElementById('val-desc-2').innerText = prov2.descuento + '%';
+            document.getElementById('val-desc-3').innerText = prov3.descuento + '%';
+
+            // 3. CALCULO DEL ALGORITMO PONDERADO DE DECISIÓN
+            const wPre = parseFloat(document.getElementById('w-precio').value) || 0;
+            const wEnt = parseFloat(document.getElementById('w-entrega').value) || 0;
+            const wCre = parseFloat(document.getElementById('w-credito').value) || 0;
+            const wGar = parseFloat(document.getElementById('w-garantia').value) || 0;
+            const wDes = parseFloat(document.getElementById('w-descuento').value) || 0;
+
+            const wSum = wPre + wEnt + wCre + wGar + wDes;
+            document.getElementById('weight-total').innerText = `Suma: ${wSum}%`;
+            document.getElementById('weight-total').className = wSum === 100 
+                ? "text-sm font-semibold px-3 py-1 bg-green-100 text-green-800 rounded-full"
+                : "text-sm font-semibold px-3 py-1 bg-red-100 text-red-800 rounded-full";
+
+            // Normalización de variables
+            const minCost = Math.min(total1, total2, total3) || 1;
+            const minEntrega = Math.min(prov1.entrega, prov2.entrega, prov3.entrega) || 1;
+            const maxCredito = Math.max(prov1.credito, prov2.credito, prov3.credito) || 1;
+            const maxGarantia = Math.max(prov1.garantia, prov2.garantia, prov3.garantia) || 1;
+            const maxDescuento = Math.max(prov1.descuento, prov2.descuento, prov3.descuento) || 1;
+
+            function calcularScore(total, prov) {
+                const sPrecio = (minCost / (total || 1)) * (wPre / 100);
+                const sEntrega = (minEntrega / (prov.entrega || 1)) * (wEnt / 100);
+                const sCredito = (prov.credito / maxCredito) * (wCre / 100);
+                const sGarantia = (prov.garantia / maxGarantia) * (wGar / 100);
+                const sDescuento = ((prov.descuento || 0) / (maxDescuento || 1)) * (wDes / 100);
+
+                return ((sPrecio + sEntrega + sCredito + sGarantia + sDescuento) * 100).toFixed(1);
+            }
+
+            const score1 = parseFloat(calcularScore(total1, prov1));
+            const score2 = parseFloat(calcularScore(total2, prov2));
+            const score3 = parseFloat(calcularScore(total3, prov3));
+
+            document.getElementById('score-1').innerText = score1 + '%';
+            document.getElementById('score-2').innerText = score2 + '%';
+            document.getElementById('score-3').innerText = score3 + '%';
+
+            // 4. Determinar Ganador
+            const list = [
+                { prov: prov1, score: score1, total: total1 },
+                { prov: prov2, score: score2, total: total2 },
+                { prov: prov3, score: score3, total: total3 }
+            ];
+            list.sort((a, b) => b.score - a.score);
+            const ganador = list[0];
+
+            document.getElementById('rec-nombre').innerText = ganador.prov.nombre;
+            document.getElementById('rec-detalle').innerText = `Esta opción obtuvo un puntaje de idoneidad del ${ganador.score}% optimizando la combinación de Costo Total (${fmt(ganador.total)}), crédito (${ganador.prov.credito} días) y tiempos de entrega (${ganador.prov.entrega} días).`;
+        }
+
+        // Inicialización al cargar la página
+        window.onload = () => {
+            cargarSelectoresProveedores();
+            renderTablaArticulos();
+            renderTablaBDProveedores();
+            actualizarCalculos();
+        };
+    </script>
+</body>
+</html>
+
